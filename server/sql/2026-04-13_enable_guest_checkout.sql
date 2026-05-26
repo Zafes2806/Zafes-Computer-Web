@@ -1,0 +1,5 @@
+ALTER TABLE `orders`
+MODIFY COLUMN `userId` CHAR(36)
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_bin
+NULL;

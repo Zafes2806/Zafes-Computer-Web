@@ -1,0 +1,21 @@
+.scope-select {
+    :global(.ant-select-selector) {
+        font-weight: 600;
+    }
+}
+
+.scope-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-select {
+    :global(.ant-select-selector) {
+        border-radius: 10px !important;
+    }
+
+    :global(.ant-select-selection-item) {
+        white-space: nowrap;
+    }
+}

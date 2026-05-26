@@ -1,0 +1,37 @@
+.detailList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detailRow {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+}
+
+.detailLabel {
+    font-weight: 600;
+    color: #4b5563;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.detailValue {
+    min-width: 0;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.scope-select {
+    :global(.ant-select-selector) {
+        font-weight: 600;
+    }
+}
+
+.scope-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}

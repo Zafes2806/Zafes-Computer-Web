@@ -1,0 +1,322 @@
+.wrapper {
+    min-height: 100vh;
+    background-color: #f6f9fc;
+}
+
+.main {
+    padding: 32px 24px;
+}
+
+.container {
+    width: var(--page-shell-width);
+    margin: 0 auto;
+
+    :global {
+        // Tùy chỉnh style cho table
+        .ant-table {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+            .ant-table-thead > tr > th {
+                background: #fafafa;
+                font-weight: 600;
+            }
+
+            .ant-table-tbody > tr > td {
+                padding: 16px;
+            }
+
+            .ant-table-tbody > tr.ant-table-row-selected > td,
+            .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+                background: transparent !important;
+            }
+        }
+
+        // Tùy chỉnh style cho card
+        .ant-card {
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+            .ant-card-head {
+                border-bottom: 1px solid #f0f0f0;
+                padding: 0 24px;
+
+                .ant-card-head-title {
+                    font-size: 16px;
+                    font-weight: 600;
+                }
+            }
+
+            .ant-card-body {
+                padding: 24px;
+            }
+        }
+
+        // Tùy chỉnh style cho form
+        .ant-form-item-label > label {
+            font-weight: 500;
+        }
+
+        .ant-input,
+        .ant-select-selector {
+            border-radius: 6px;
+            &:hover,
+            &:focus {
+                border-color: #40a9ff;
+            }
+        }
+
+    }
+}
+
+.product-link {
+    display: inline-flex;
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: 36px;
+    min-width: 0;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.product-name-link {
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+
+    span {
+        color: #111827;
+        font-weight: 500;
+        line-height: 1.45;
+        white-space: normal;
+        word-break: break-word;
+    }
+}
+
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.stock-warning {
+    width: fit-content;
+    border-radius: 999px;
+    background: #fff1f0;
+    color: #cf1322;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 3px 10px;
+}
+
+.cart-warning {
+    margin-bottom: 16px;
+    border: 1px solid #ffd8bf;
+    border-radius: 8px;
+    background: #fff7e6;
+    color: #ad4e00;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 16px;
+}
+
+.checkout-section {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+}
+
+.voucher-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    input {
+        flex: 1;
+    }
+}
+
+.total-section {
+    padding: 16px 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 24px;
+
+    p {
+        margin: 12px 0;
+        display: flex;
+        justify-content: space-between;
+        color: #333;
+
+        &:nth-child(3) {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1890ff;
+        }
+
+        &:last-child {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+    }
+}
+
+.agreement-section {
+    padding: 4px 0 2px;
+
+    :global(.ant-checkbox-wrapper) {
+        align-items: flex-start;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+
+    :global(.ant-checkbox) {
+        margin-top: 4px;
+    }
+}
+
+.agreement-popover {
+    :global(.ant-popover-inner) {
+        padding: 10px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
+    }
+
+    :global(.ant-popover-inner-content) {
+        color: #111827;
+    }
+}
+
+.agreement-popover-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 420px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.agreement-popover-icon {
+    color: #fa8c16;
+    font-size: 22px;
+    flex: 0 0 auto;
+}
+
+.payment-actions {
+    width: 100%;
+
+    :global {
+        .ant-space-item {
+            width: 100%;
+        }
+    }
+}
+
+.payment-button {
+    width: 100%;
+    height: 45px;
+    margin: 6px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+    transition: all 0.2s ease;
+
+    &:hover,
+    &:focus {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    &:disabled,
+    &:global(.ant-btn-disabled) {
+        cursor: not-allowed;
+        opacity: 1;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+.payment-button-cod {
+    background: #ee4d2d;
+    border-color: #ee4d2d;
+    color: white;
+
+    &:hover,
+    &:focus {
+        background: #ee4d2d;
+        border-color: #ee4d2d;
+        color: white;
+    }
+
+    &:disabled,
+    &:global(.ant-btn-disabled),
+    &:disabled:hover,
+    &:global(.ant-btn-disabled):hover {
+        background: #fff1ed;
+        border-color: #ffc4b8;
+        color: #c2412c;
+    }
+}
+
+.payment-button-momo {
+    background: white;
+    border: 1px solid #1677ff;
+    color: #1677ff;
+
+    &:hover,
+    &:focus {
+        background: #f0f7ff;
+        border-color: #1677ff;
+        color: #1677ff;
+    }
+
+    &:disabled,
+    &:global(.ant-btn-disabled),
+    &:disabled:hover,
+    &:global(.ant-btn-disabled):hover {
+        background: #f5f8ff;
+        border-color: #bfd7ff;
+        color: #2f6fd6;
+    }
+}
+
+.payment-button-vnpay {
+    background: #1677ff;
+    border-color: #1677ff;
+    color: white;
+
+    &:hover,
+    &:focus {
+        background: #1677ff;
+        border-color: #1677ff;
+        color: white;
+    }
+
+    &:disabled,
+    &:global(.ant-btn-disabled),
+    &:disabled:hover,
+    &:global(.ant-btn-disabled):hover {
+        background: #eef5ff;
+        border-color: #b8d7ff;
+        color: #1f66d1;
+    }
+}

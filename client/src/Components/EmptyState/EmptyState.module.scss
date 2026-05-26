@@ -1,0 +1,54 @@
+.empty-state {
+    width: 100%;
+    min-height: 240px;
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #e8eef5;
+    border-radius: 12px;
+}
+
+.icon-wrap {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1677ff;
+    font-size: 26px;
+}
+
+.content {
+    max-width: 520px;
+}
+
+.title {
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+}
+
+.description {
+    display: block;
+    margin-top: 6px;
+    line-height: 1.6;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.action-button {
+    min-width: 160px;
+    height: 40px;
+    border-radius: 8px;
+}

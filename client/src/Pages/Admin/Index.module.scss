@@ -1,0 +1,132 @@
+.wrapper {
+    min-height: 100vh;
+    background: #f3f6fb;
+
+    :global(.ant-layout) {
+        min-width: 0;
+    }
+}
+
+.logo {
+    height: 60px;
+    margin: 16px;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}
+
+.header {
+    padding: 0 24px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+}
+
+.userMenuButton {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 999px;
+    transition: background-color 0.2s ease;
+    max-width: 320px;
+
+    &:hover {
+        background: #f4f7fb;
+    }
+}
+
+.userName {
+    color: #1f2937;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profileModal {
+    :global(.ant-modal-body) {
+        padding-top: 8px;
+    }
+}
+
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f4f8ff 0%, #eef5ff 100%);
+}
+
+.profileHeaderText {
+    min-width: 0;
+}
+
+.profileTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.profileSubtitle {
+    margin: 4px 0 8px;
+    color: #6b7280;
+    word-break: break-word;
+}
+
+.content {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 24px clamp(24px, 2.8vw, 40px) 32px;
+    background: transparent;
+    min-height: 280px;
+    border-radius: 0;
+    box-shadow: none;
+    box-sizing: border-box;
+}
+
+.content > * {
+    width: min(100%, 1320px);
+    min-width: 0;
+    margin: 0 auto;
+}
+
+@media (max-width: 1440px) {
+    .content {
+        padding-inline: clamp(24px, 3vw, 36px);
+    }
+}
+
+@media (max-width: 1200px) {
+    .content {
+        padding: 20px 20px 24px;
+    }
+}
+
+@media (max-width: 991px) {
+    .content {
+        padding: 16px 16px 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .content {
+        padding: 12px 12px 16px;
+    }
+}

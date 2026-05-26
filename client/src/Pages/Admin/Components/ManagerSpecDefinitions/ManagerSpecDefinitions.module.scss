@@ -1,0 +1,113 @@
+.options-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.definition-title {
+    min-width: 0;
+}
+
+.action-group {
+    margin-left: auto;
+}
+
+.modal-select {
+    width: 100%;
+}
+
+.modal-form :global(.ant-form-item-label > label) {
+    font-weight: 500;
+}
+
+.modal-form :global(.ant-input),
+.modal-form :global(.ant-input-affix-wrapper),
+.modal-form :global(.ant-select-selector) {
+    border-radius: 10px;
+}
+
+.modal-select :global(.ant-select-selector) {
+    border-radius: 10px !important;
+}
+
+.option-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.option-input-row :global(.ant-btn) {
+    min-width: 88px;
+}
+
+.selected-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.selected-options :global(.ant-tag) {
+    margin-inline-end: 0;
+}
+
+.option-drag-item {
+    display: inline-flex;
+    align-items: center;
+    cursor: grab;
+    user-select: none;
+}
+
+.option-drag-item:active {
+    cursor: grabbing;
+}
+
+.option-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.16s ease, outline-color 0.16s ease, background-color 0.16s ease;
+}
+
+.option-drag-item.dragging .option-tag {
+    opacity: 0.45;
+}
+
+.option-drag-item.drag-over .option-tag {
+    outline: 1px dashed #1677ff;
+    outline-offset: 2px;
+    background-color: #e6f4ff;
+}
+
+.option-tag :global(.anticon-holder) {
+    display: none;
+}
+
+.option-tag :global(.ant-tag-close-icon) {
+    cursor: pointer;
+}
+
+.draggable-row {
+    transition: background-color 0.16s ease, opacity 0.16s ease;
+}
+
+.draggable-row:not(.drag-disabled) {
+    cursor: grab;
+}
+
+.draggable-row:not(.drag-disabled):active {
+    cursor: grabbing;
+}
+
+.row-dragging > :global(td) {
+    opacity: 0.45;
+}
+
+.row-drag-over > :global(td) {
+    background-color: #e6f4ff;
+}
+
+.drag-disabled {
+    cursor: default;
+}
