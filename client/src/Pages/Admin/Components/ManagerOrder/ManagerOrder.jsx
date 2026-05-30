@@ -15,8 +15,10 @@ import {
 } from '../../../../api';
 import {
     ORDER_STATUS_OPTIONS,
+    getOrderStatusColor,
     getOrderStatusLabel,
 } from '../../../../constants/orderStatus';
+import { AppTag } from '../../../../Components/AppTag/AppTag';
 import { getPaymentTypeLabel } from '../../../../constants/paymentTypes';
 import { PAYMENT_TYPE_CONFIG } from '../../../../constants/paymentTypes';
 import { COMPONENT_TYPE_LABELS, getBaseComponentType } from '../../../../constants/componentTypes';

@@ -2,7 +2,7 @@ const { body, param, query } = require('express-validator');
 const { REVIEW_LIST_STATUSES, REVIEW_STATUSES } = require('../constants/reviewStatus');
 
 const reviewCreateValidation = [
-    body('productId').isUUID().withMessage('Mã sản phẩm không hợp lệ'),
+    body('productId').optional().isUUID().withMessage('Mã sản phẩm không hợp lệ'),
     body('orderCode').trim().notEmpty().withMessage('Mã đơn hàng không được để trống'),
     body('rating')
         .notEmpty()

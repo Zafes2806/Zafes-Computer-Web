@@ -180,7 +180,7 @@ function buildAdminReviewWhere(query = {}) {
     };
 }
 
-async function findEligiblePurchasedOrder(userId, productId, orderCode) {
+async function findEligiblePurchasedOrder(userId, orderCode) {
     return modelOrder.findOne({
         where: {
             userId,
@@ -195,11 +195,14 @@ async function findEligiblePurchasedOrder(userId, productId, orderCode) {
                 model: modelOrderItem,
                 as: 'items',
                 attributes: ['id', 'productId'],
-                where: { productId },
                 required: true,
             },
         ],
     });
+}
+
+function getOrderProductIds(order) {
+    return [...new Set((order?.items || []).map((item) => item.productId).filter(Boolean))];
 }
 
 async function createReview(userId, payload) {
@@ -208,52 +211,94 @@ async function createReview(userId, payload) {
         throw new BadRequestError('Nội dung đánh giá không được để trống');
     }
 
-    const eligibleOrder = await findEligiblePurchasedOrder(userId, payload.productId, payload.orderCode);
+    const eligibleOrder = await findEligiblePurchasedOrder(userId, payload.orderCode);
 
     if (!eligibleOrder) {
-        throw new BadRequestError('Chỉ có thể đánh giá sản phẩm đã mua trong đơn hàng đã giao hoặc hoàn thành');
+        throw new BadRequestError('Chỉ có thể đánh giá đơn hàng đã giao hoặc hoàn thành');
     }
 
     if (!isReviewWindowOpen(eligibleOrder)) {
         throw new BadRequestError(`Chỉ có thể đánh giá trong ${config.reviews.reviewWindowDays} ngày sau khi đơn hàng được giao hoặc hoàn thành`);
     }
 
-    const existingOrderReview = await productReviewModel.findOne({
+    const orderProductIds = getOrderProductIds(eligibleOrder);
+    if (orderProductIds.length === 0) {
+        throw new BadRequestError('Không tìm thấy sản phẩm trong đơn hàng để đánh giá');
+    }
+
+    const existingOrderReviews = await productReviewModel.findAll({
         where: {
             userId,
-            productId: payload.productId,
             orderId: eligibleOrder.id,
         },
         paranoid: false,
     });
+    const activeOrderReview = existingOrderReviews.find((review) => !review.deletedAt);
 
-    if (existingOrderReview && !existingOrderReview.deletedAt) {
-        throw new BadRequestError('Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi');
+    if (activeOrderReview) {
+        throw new BadRequestError('Bạn đã đánh giá đơn hàng này rồi');
     }
 
-    if (existingOrderReview?.deletedAt) {
-        await existingOrderReview.restore();
-        await existingOrderReview.update({
+    const reviews = await connect.transaction(async (transaction) => {
+        const restoredReviews = [];
+
+        for (const review of existingOrderReviews) {
+            if (!review.deletedAt || !orderProductIds.includes(review.productId)) {
+                continue;
+            }
+
+            await review.restore({ transaction });
+            await review.update({
+                rating: payload.rating,
+                content: normalizedContent,
+                status: REVIEW_STATUS.PENDING,
+                reviewedAt: null,
+                reviewedByUserId: null,
+                orderId: eligibleOrder.id,
+            }, { transaction });
+            restoredReviews.push(review);
+        }
+
+        const restoredProductIds = new Set(restoredReviews.map((review) => review.productId));
+        const createdReviews = [];
+        for (const productId of orderProductIds) {
+            if (restoredProductIds.has(productId)) {
+                continue;
+            }
+
+            createdReviews.push(await productReviewModel.create({
+                productId,
+                orderId: eligibleOrder.id,
+                rating: payload.rating,
+                content: normalizedContent,
+                userId,
+                status: REVIEW_STATUS.PENDING,
+            }, { transaction }));
+        }
+
+        return [...restoredReviews, ...createdReviews];
+    });
+
+    return findFormattedUserReview(userId, reviews[0].id);
+}
+
+async function updateOrderReviews(existingReview, payload) {
+    return connect.transaction(async (transaction) => {
+        const orderReviewWhere = existingReview.orderId
+            ? { userId: existingReview.userId, orderId: existingReview.orderId, deletedAt: null }
+            : { id: existingReview.id, userId: existingReview.userId, deletedAt: null };
+
+        await productReviewModel.update({
             rating: payload.rating,
-            content: normalizedContent,
+            content: payload.content,
             status: REVIEW_STATUS.PENDING,
             reviewedAt: null,
             reviewedByUserId: null,
-            orderId: eligibleOrder.id,
+        }, {
+            where: orderReviewWhere,
+            transaction,
         });
-        return findFormattedUserReview(userId, existingOrderReview.id);
-    }
-
-    const review = await productReviewModel.create({
-        productId: payload.productId,
-        orderId: eligibleOrder.id,
-        rating: payload.rating,
-        content: normalizedContent,
-        userId,
-        status: REVIEW_STATUS.PENDING,
     });
-
-    return findFormattedUserReview(userId, review.id);
 }
 
 async function getUserReviews(userId) {
@@ -285,12 +330,9 @@ async function updateMyReview(userId, reviewId, payload) {
         throw new BadRequestError(`Chỉ có thể sửa đánh giá trong ${config.reviews.editWindowDays} ngày sau khi đánh giá`);
     }
 
-    await existingReview.update({
+    await updateOrderReviews(existingReview, {
         rating: payload.rating,
         content: normalizedContent,
-        status: REVIEW_STATUS.PENDING,
-        reviewedAt: null,
-        reviewedByUserId: null,
     });
 
     return findFormattedUserReview(userId, existingReview.id);

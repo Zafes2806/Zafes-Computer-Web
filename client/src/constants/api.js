@@ -109,6 +109,7 @@ export const API_PATHS = {
         collection: ordersBase,
         byId: (orderCode) => `${ordersBase}/${orderCode}`,
         cancel: (orderCode) => `${ordersBase}/${orderCode}/cancellations`,
+        complete: (orderCode) => `${ordersBase}/${orderCode}/completions`,
         paymentAttempts: (orderCode) => `${ordersBase}/${orderCode}/payments`,
         returnRequest: (orderCode) => `${ordersBase}/${orderCode}/return-requests`,
     },

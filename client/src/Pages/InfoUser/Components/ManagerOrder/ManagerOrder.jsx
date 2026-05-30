@@ -1,5 +1,5 @@
 import { Table, Space, Typography, Image, Button, Popconfirm, message, Modal, Rate, Input, Form, Descriptions, Divider, Tag, Tooltip } from 'antd';
-import { ShoppingCartOutlined, ShoppingOutlined, BuildOutlined, EyeOutlined, RollbackOutlined, StarOutlined, StarFilled, CreditCardOutlined, CloseCircleOutlined, HourglassOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined, ShoppingOutlined, BuildOutlined, EyeOutlined, RollbackOutlined, StarOutlined, StarFilled, CreditCardOutlined, CloseCircleOutlined, HourglassOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { AdminIconAction, AdminIconActionGroup } from '../../../Admin/Components/shared/AdminIconAction';
 import classNames from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -10,6 +10,7 @@ import { AppTag, PaymentTypeTag } from '../../../../Components/AppTag/AppTag';
 import EmptyState from '../../../../Components/EmptyState/EmptyState';
 import {
     requestCancelOrder,
+    requestCompleteOrder,
     requestCreateReview,
     requestGetMyReviews,
     requestGetOrders,
@@ -138,8 +139,11 @@ function ManagerOrder() {
         }
     };
 
-    const getReviewForProduct = (order, product) =>
-        userReviews.find((item) => item.orderId === order.id && item.productId === product.product.id) || null;
+    const getReviewForOrder = (order) =>
+        userReviews.find((item) => item.orderId === order.id) || null;
+
+    const getReviewTargetProduct = (order, review = null) =>
+        order.products.find((product) => product.product.id === review?.productId) || order.products[0] || null;
 
     const openCreateReviewModal = (product, order) => {
         setReviewModalState({
@@ -194,7 +198,6 @@ function ManagerOrder() {
         try {
             const values = await reviewForm.validateFields();
             const payload = {
-                productId: reviewModalState.product.product.id,
                 orderCode: reviewModalState.order.orderCode,
                 rating: values.rating,
                 content: values.content,
@@ -202,10 +205,10 @@ function ManagerOrder() {
 
             if (reviewModalState.mode === 'edit' && reviewModalState.review) {
                 await requestUpdateReview(reviewModalState.review.id, payload);
-                message.success('Cập nhật đánh giá sản phẩm thành công');
+                message.success('Cập nhật đánh giá đơn hàng thành công');
             } else {
                 await requestCreateReview(payload);
-                message.success('Đánh giá sản phẩm thành công');
+                message.success('Đánh giá đơn hàng thành công');
             }
 
             await fetchMyReviews();
@@ -215,7 +218,17 @@ function ManagerOrder() {
                 return;
             }
 
-            message.error(error?.response?.data?.message || (reviewModalState.mode === 'edit' ? 'Không thể cập nhật đánh giá' : 'Không thể đánh giá sản phẩm'));
+            message.error(error?.response?.data?.message || (reviewModalState.mode === 'edit' ? 'Không thể cập nhật đánh giá' : 'Không thể đánh giá đơn hàng'));
+        }
+    };
+
+    const handleCompleteOrder = async (orderCode) => {
+        try {
+            await requestCompleteOrder(orderCode);
+            await fetchData();
+            message.success('Đã xác nhận nhận hàng');
+        } catch (error) {
+            message.error(error?.response?.data?.message || 'Không thể xác nhận đã nhận hàng');
         }
     };
 
@@ -269,11 +282,8 @@ function ManagerOrder() {
         }
     };
 
-    const isProductReviewedInOrder = (record, product) =>
-        userReviews.some((item) => item.productId === product.product.id && item.orderId === record.id);
-
     const isOrderFullyReviewed = (record) =>
-        record.products.length > 0 && record.products.every((product) => isProductReviewedInOrder(record, product));
+        Boolean(getReviewForOrder(record));
 
     const renderReorderButton = (record, key = 'reorder') => (
         <AdminIconAction
@@ -376,25 +386,40 @@ function ManagerOrder() {
             );
         }
 
+        if (record.canComplete) {
+            nodes.push(
+                <Popconfirm
+                    key="complete"
+                    title="Xác nhận đã nhận hàng"
+                    description="Sau khi xác nhận, đơn hàng sẽ chuyển sang trạng thái hoàn thành."
+                    onConfirm={() => handleCompleteOrder(record.orderCode)}
+                    okText="Đồng ý"
+                    cancelText="Hủy"
+                >
+                    <span>
+                        <AdminIconAction title="Đã nhận hàng" icon={<CheckCircleOutlined />} variant="activate" />
+                    </span>
+                </Popconfirm>
+            );
+        }
+
         if (isReviewableOrderStatus(record.status)) {
-            const reviewNodes = record.products
-                .filter((product) => getReviewForProduct(record, product) || record.canReview)
-                .map((product, index) => {
-                    const review = getReviewForProduct(record, product);
-                    return (
-                        <AdminIconAction
-                            key={`rev-${index}`}
-                            title={review ? 'Xem đánh giá' : 'Đánh giá'}
-                            icon={review ? <StarFilled /> : <StarOutlined />}
-                            variant="activate"
-                            onClick={() => {
-                                if (review) { openViewReviewModal(review, product, record); return; }
-                                openCreateReviewModal(product, record);
-                            }}
-                        />
-                    );
-                });
-            nodes.push(...reviewNodes);
+            const review = getReviewForOrder(record);
+            const product = getReviewTargetProduct(record, review);
+            if (product && (review || record.canReview)) {
+                nodes.push(
+                    <AdminIconAction
+                        key="review-order"
+                        title={review ? 'Xem đánh giá' : 'Đánh giá đơn hàng'}
+                        icon={review ? <StarFilled /> : <StarOutlined />}
+                        variant="activate"
+                        onClick={() => {
+                            if (review) { openViewReviewModal(review, product, record); return; }
+                            openCreateReviewModal(product, record);
+                        }}
+                    />,
+                );
+            }
         }
 
         const isFullyReviewed = isReviewableOrderStatus(record.status) && isOrderFullyReviewed(record);
@@ -553,7 +578,7 @@ function ManagerOrder() {
             </Modal>
 
             <Modal
-                title={reviewModalState.mode === 'edit' ? 'Sửa đánh giá sản phẩm' : reviewModalState.review ? 'Xem đánh giá sản phẩm' : 'Đánh giá sản phẩm'}
+                title={reviewModalState.mode === 'edit' ? 'Sửa đánh giá đơn hàng' : reviewModalState.review ? 'Xem đánh giá đơn hàng' : 'Đánh giá đơn hàng'}
                 open={reviewModalState.open}
                 onOk={submitReviewModal}
                 onCancel={closeReviewModal}
@@ -584,9 +609,11 @@ function ManagerOrder() {
                             />
                             <div>
                                 <Text strong style={{ fontSize: '16px', display: 'block', marginBottom: '4px' }}>
-                                    {reviewModalState.product.product.name}
+                                    {reviewModalState.order?.products?.length > 1
+                                        ? `${reviewModalState.order.products.length} sản phẩm trong đơn hàng`
+                                        : reviewModalState.product.product.name}
                                 </Text>
-                                <Text type="secondary">Số lượng: {reviewModalState.product.quantity}</Text>
+                                <Text type="secondary">Mã đơn: {reviewModalState.order?.orderCode}</Text>
                             </div>
                         </div>
 

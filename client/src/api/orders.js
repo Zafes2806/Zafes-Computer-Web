@@ -25,6 +25,11 @@ export const requestReturnOrder = async (data) => {
     return res.data;
 };
 
+export const requestCompleteOrder = async (orderCode) => {
+    const res = await request.post(API_PATHS.orders.complete(orderCode));
+    return res.data;
+};
+
 export const requestGetOrderDetail = async (orderCode, guestAccessToken) => {
     const res = await request.get(API_PATHS.orders.byId(orderCode), {
         params: guestAccessToken ? { token: guestAccessToken } : undefined,

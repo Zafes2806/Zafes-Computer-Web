@@ -77,6 +77,17 @@ async function requestReturnOrder(req, res) {
     return new OK({ message: 'Gửi yêu cầu trả hàng/hoàn tiền thành công' }).send(res);
 }
 
+async function completeUserOrder(req, res) {
+    const orderCode = req.params.orderCode || req.body.orderCode;
+    const result = await orderService.completeUserOrder(req.user.id, orderCode);
+
+    if (!result.changed) {
+        return new OK({ message: 'Đơn hàng đã hoàn thành trước đó' }).send(res);
+    }
+
+    return new OK({ message: 'Xác nhận đã nhận hàng thành công' }).send(res);
+}
+
 async function getOrderDetail(req, res) {
     const orderCode = req.params.orderCode || req.query.orderCode;
     const metadata = await orderService.getOrderDetailWithAccess({
@@ -133,6 +144,7 @@ async function markRefundProcessed(req, res) {
 module.exports = {
     cancelUserOrder,
     checkout,
+    completeUserOrder,
     createPaymentRetry,
     getAdminOrders,
     getOrderDetail,

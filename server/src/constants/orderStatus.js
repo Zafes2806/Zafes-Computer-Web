@@ -33,7 +33,7 @@ const ORDER_STATUS_TRANSITIONS = Object.freeze({
     pending: Object.freeze(['confirmed', 'cancelled']),
     confirmed: Object.freeze(['shipping', 'cancelled']),
     shipping: Object.freeze(['delivered']),
-    delivered: Object.freeze(['return_requested']),
+    delivered: Object.freeze(['return_requested', 'completed']),
     completed: Object.freeze([]),
     cancelled: Object.freeze([]),
     // Admin có thể chấp nhận (return_in_progress) hoặc từ chối (return_rejected)

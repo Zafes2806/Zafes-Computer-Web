@@ -19,6 +19,13 @@ router.get('/:orderCode', authOptional, orderCodeParamValidation, validate, asyn
 router.post('/:orderCode/payments', authOptional, orderCodeParamValidation, validate, asyncHandler(ordersController.createPaymentRetry));
 router.post('/:orderCode/cancellations', authOptional, orderCodeParamValidation, validate, asyncHandler(ordersController.cancelUserOrder));
 router.post(
+    '/:orderCode/completions',
+    authCustomer,
+    orderCodeParamValidation,
+    validate,
+    asyncHandler(ordersController.completeUserOrder),
+);
+router.post(
     '/:orderCode/return-requests',
     authCustomer,
     returnRequestValidation,

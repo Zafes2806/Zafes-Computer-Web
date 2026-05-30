@@ -423,6 +423,7 @@ function formatOrderForUser(order) {
         status: order.status,
         email: order.email,
         canCancel: canTransitionOrderStatus(order.status, 'cancelled'),
+        canComplete: canTransitionOrderStatus(order.status, 'completed'),
         canRequestReturn: isReturnWindowOpen(order),
         canReview: isReviewWindowOpen(order),
         reviewWindowExpiresAt: getReviewWindowExpiresAt(order),
@@ -659,6 +660,25 @@ async function requestReturnOrder(userId, orderCode, reason) {
     await order.update(buildOrderStatusUpdate(order, 'return_requested', { returnReason }));
 }
 
+async function completeUserOrder(userId, orderCode) {
+    return connect.transaction(async (transaction) => {
+        const order = await modelOrder.findOne({
+            where: { userId, orderCode },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+
+        if (!order) throw new BadRequestError('Không tìm thấy đơn hàng');
+        if (order.status === 'completed') return { changed: false, alreadyCompleted: true };
+        if (!canTransitionOrderStatus(order.status, 'completed')) {
+            throw new BadRequestError(`Đơn hàng ở trạng thái "${getOrderStatusLabel(order.status)}" không thể xác nhận đã nhận hàng`);
+        }
+
+        await order.update(buildOrderStatusUpdate(order, 'completed'), { transaction });
+        return { changed: true, alreadyCompleted: false };
+    });
+}
+
 async function markPaymentSucceeded(orderCode, options = {}) {
     if (!orderCode) throw new BadRequestError('Không tìm thấy đơn hàng thanh toán');
 
@@ -870,6 +890,7 @@ module.exports = {
     cancelOrderWithAccess,
     cancelUserOrder,
     cancelPendingPaymentOrder,
+    completeUserOrder,
     createOrder,
     ensureShippingInfo,
     findOrderByCode,
