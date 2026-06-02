@@ -450,7 +450,7 @@ function ManagerOrder() {
             dataIndex: 'products',
             key: 'products',
             align: 'left',
-            width: '22%',
+            width: '20%',
             render: (products) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {products.map((item, index) => (
@@ -508,7 +508,7 @@ function ManagerOrder() {
         {
             title: 'Thao tác',
             key: 'action',
-            width: '15%',
+            width: '17%',
             align: 'right',
             render: (_, record) => (
                 <AdminIconActionGroup>

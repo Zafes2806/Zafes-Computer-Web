@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Form, Input, Button, Card, Select, message } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 import styles from './InfoUser.module.scss';
 import classNames from 'classnames/bind';
 import { useStore } from '../../../../hooks/useStore';
@@ -37,7 +37,8 @@ function InfoUser() {
     }, [dataUser, form]);
 
     return (
-        <Card title="Cập nhật thông tin cá nhân" className={cx('info-card')}>
+        <div className={cx('info-user')}>
+            <h1>Cập nhật thông tin cá nhân</h1>
             <Form
                 form={form}
                 layout="vertical"
@@ -104,7 +105,7 @@ function InfoUser() {
                     </Button>
                 </Form.Item>
             </Form>
-        </Card>
+        </div>
     );
 }
 

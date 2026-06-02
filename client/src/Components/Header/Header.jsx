@@ -10,6 +10,7 @@ import { Dropdown } from 'antd';
 import {
     UserOutlined,
     ShoppingOutlined,
+    HeartOutlined,
     LogoutOutlined,
     SearchOutlined,
     PhoneOutlined,
@@ -45,6 +46,11 @@ function Header() {
         },
         {
             key: '3',
+            label: <Link to="/recently-viewed">Sản phẩm đã xem</Link>,
+            icon: <HeartOutlined />,
+        },
+        {
+            key: '4',
             label: 'Đăng xuất',
             icon: <LogoutOutlined />,
             danger: true,

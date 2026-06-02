@@ -40,6 +40,7 @@ export const publicRoutes = [
 export const privateRoutes = [
     { path: '/profile', component: <Index /> },
     { path: '/orders', component: <Index /> },
+    { path: '/recently-viewed', component: <Index /> },
 ];
 
 export const adminRoutes = [{ path: '/admin', component: <Admin /> }];

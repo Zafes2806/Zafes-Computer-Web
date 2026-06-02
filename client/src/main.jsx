@@ -8,6 +8,7 @@ import { Provider } from './store/Provider.jsx';
 import PrivateRoute from './Components/PrivateRoute/PrivateRoute.jsx';
 import AdminRoute from './Components/AdminRoute/AdminRoute.jsx';
 import StorefrontRoute from './Components/StorefrontRoute/StorefrontRoute.jsx';
+import StorefrontChatbot from './Components/StorefrontChatbot/StorefrontChatbot.jsx';
 import NotFound from './Pages/NotFound/NotFound.jsx';
 import RouteLoading from './Components/RouteLoading/RouteLoading.jsx';
 
@@ -51,6 +52,7 @@ createRoot(document.getElementById('root')).render(
                     ))}
                     <Route path="*" element={<NotFound />} />
                 </Routes>
+                <StorefrontChatbot />
             </Router>
         </Provider>
     </StrictMode>,

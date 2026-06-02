@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Layout, Menu } from 'antd';
-import { UserOutlined, ShoppingOutlined, HeartOutlined, HistoryOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, ShoppingOutlined, HeartOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
 import styles from './Index.module.scss';
@@ -21,20 +21,17 @@ const cx = classNames.bind(styles);
 
 function Index() {
     const navigate = useNavigate();
-    const [currentComponent, setCurrentComponent] = useState(<InfoUser />);
     const { clearSession, fetchCategory } = useStore();
 
     const { pathname } = useLocation();
 
-    useEffect(() => {
-        if (pathname === '/orders') {
-            setCurrentComponent(<ManagerOrder />);
-        }
-    }, [pathname]);
-
-    const handleMenuClick = (component) => {
-        setCurrentComponent(component);
+    const accountPages = {
+        '/profile': <InfoUser />,
+        '/orders': <ManagerOrder />,
+        '/recently-viewed': <ManagerProductWatch />,
     };
+    const currentComponent = accountPages[pathname] || accountPages['/profile'];
+    const selectedMenuKey = pathname === '/recently-viewed' ? 'recently-viewed' : pathname.slice(1) || 'profile';
 
     const handleLogout = async () => {
         try {
@@ -51,19 +48,19 @@ function Index() {
             key: 'profile',
             icon: <UserOutlined />,
             label: 'Thông tin cá nhân',
-            onClick: () => handleMenuClick(<InfoUser />),
+            onClick: () => navigate('/profile'),
         },
         {
             key: 'orders',
             icon: <ShoppingOutlined />,
             label: 'Đơn hàng của tôi',
-            onClick: () => handleMenuClick(<ManagerOrder />),
+            onClick: () => navigate('/orders'),
         },
         {
-            key: 'wishlist',
+            key: 'recently-viewed',
             icon: <HeartOutlined />,
             label: 'Sản phẩm đã xem',
-            onClick: () => handleMenuClick(<ManagerProductWatch />),
+            onClick: () => navigate('/recently-viewed'),
         },
         {
             key: 'logout',
@@ -81,7 +78,7 @@ function Index() {
             <div className={cx('shell')}>
                 <Layout className={cx('account-layout')}>
                     <Sider width={250} theme="light" className={cx('sider')}>
-                        <Menu mode="inline" defaultSelectedKeys={['profile']} items={menuItems} className={cx('menu')} />
+                        <Menu mode="inline" selectedKeys={[selectedMenuKey]} items={menuItems} className={cx('menu')} />
                     </Sider>
                     <Layout className={cx('content-layout')}>
                         <Content className={cx('content')}>{currentComponent}</Content>
