@@ -6,11 +6,13 @@ export const requestCreateUser = async (data) => {
     return res.data;
 };
 
-export const requestUpdateRoleUser = async (data) => {
+export const requestUpdateManagedUser = async (data) => {
     const { userId, ...payload } = data;
     const res = await request.patch(API_PATHS.users.byId(userId), payload);
     return res.data;
 };
+
+export const requestUpdateRoleUser = requestUpdateManagedUser;
 
 export const requestDeleteUser = async (id) => {
     const res = await request.delete(API_PATHS.users.byId(id));

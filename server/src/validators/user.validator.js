@@ -116,10 +116,26 @@ const roleValidation = body('role')
 
 const updateUserValidation = [
     ...userIdParamValidation,
+    body('fullName').optional().trim().notEmpty().withMessage('Họ tên không được để trống'),
+    body('address').optional({ values: 'falsy' }).trim(),
+    body('phone')
+        .optional({ values: 'falsy' })
+        .trim()
+        .matches(/^0\d{9}$/)
+        .withMessage('Số điện thoại phải bắt đầu bằng số 0 và đủ 10 số'),
+    body('password').optional({ values: 'falsy' }).isLength({ min: 6 }).withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
     roleValidation,
     body('status').optional().trim().isIn(USER_STATUSES).withMessage('Trạng thái người dùng không hợp lệ'),
     body().custom((_, { req }) => {
-        if (req.body.role === undefined && req.body.status === undefined) {
+        const { fullName, address, phone, password, role, status } = req.body || {};
+        if (
+            fullName === undefined
+            && address === undefined
+            && phone === undefined
+            && !password
+            && role === undefined
+            && status === undefined
+        ) {
             throw new Error('Cần ít nhất một trường để cập nhật');
         }
 

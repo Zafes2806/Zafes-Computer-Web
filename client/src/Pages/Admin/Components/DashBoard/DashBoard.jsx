@@ -38,6 +38,7 @@ const { RangePicker } = DatePicker;
 const cx = classNames.bind(styles);
 const disableFutureDate = (current) => current && current.endOf('day').isAfter(dayjs().endOf('day'));
 const MAX_DASHBOARD_RANGE_DAYS = 90;
+const DEFAULT_DASHBOARD_RANGE_DAYS = 30;
 
 const emptyStatistics = {
     totalUsers: 0,
@@ -81,7 +82,12 @@ function DashBoard({ onNavigate }) {
             };
         }
 
-        return {};
+        const endDate = dayjs();
+        const startDate = endDate.subtract(DEFAULT_DASHBOARD_RANGE_DAYS - 1, 'day');
+        return {
+            startDate: startDate.format('YYYY-MM-DD'),
+            endDate: endDate.format('YYYY-MM-DD'),
+        };
     }, [dateRange]);
 
     const handleDateRangeChange = (nextRange) => {

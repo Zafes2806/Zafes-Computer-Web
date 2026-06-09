@@ -418,6 +418,15 @@ const swaggerSpec = {
                 type: 'object',
                 minProperties: 1,
                 properties: {
+                    fullName: { type: 'string', example: 'Nguyen Van B' },
+                    address: { type: 'string', example: '456 Le Loi, Da Nang', nullable: true },
+                    phone: { type: 'string', example: '0987654321', nullable: true },
+                    password: {
+                        type: 'string',
+                        minLength: 6,
+                        example: 'temp123456',
+                        description: 'Mật khẩu mới; bỏ trống nếu không đổi',
+                    },
                     role: {
                         oneOf: [{ type: 'boolean' }, { type: 'string', enum: ['true', 'false'] }],
                         example: true,
@@ -1412,10 +1421,10 @@ Object.assign(paths, {
     '/api/users/{userId}': {
         patch: operation({
             tags: ['Users'],
-            summary: 'Cập nhật quyền hoặc trạng thái user',
+            summary: 'Admin cập nhật thông tin, quyền, trạng thái hoặc đặt lại mật khẩu của user',
             security: protectedSecurity,
             parameters: [pathParam('userId', 'ID user')],
-            requestBody: jsonRequestBody('UpdateUserRequest', 'Body chứa `role`, `status` hoặc cả hai'),
+            requestBody: jsonRequestBody('UpdateUserRequest', 'Body chứa ít nhất một trường cần cập nhật'),
             responses: {
                 200: successResponse('Cập nhật user thành công'),
                 401: errorResponse('Không có quyền admin'),

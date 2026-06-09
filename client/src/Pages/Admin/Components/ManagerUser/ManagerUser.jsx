@@ -7,6 +7,7 @@ import {
     CheckCircleOutlined,
     RollbackOutlined,
     PlusOutlined,
+    KeyOutlined,
 } from '@ant-design/icons';
 import classNames from 'classnames/bind';
 import styles from './ManagerUser.module.scss';
@@ -17,7 +18,7 @@ import {
     requestDeleteUserPermanently,
     requestGetUsers,
     requestRestoreUser,
-    requestUpdateRoleUser,
+    requestUpdateManagedUser,
     requestUpdateUserStatus,
 } from '../../../../api';
 import { useStore } from '../../../../hooks/useStore';
@@ -45,7 +46,9 @@ function ManagerUser() {
     const [loading, setLoading] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+    const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [passwordResetUser, setPasswordResetUser] = useState(null);
     const [filters, setFilters] = useState({
         search: searchParams.get('search') || '',
         status: ['active', 'locked', 'all'].includes(searchParams.get('status'))
@@ -61,6 +64,7 @@ function ManagerUser() {
     });
     const [form] = Form.useForm();
     const [createForm] = Form.useForm();
+    const [passwordForm] = Form.useForm();
     const fetchSequenceRef = useRef(0);
 
     const { current: paginationCurrent, pageSize: paginationPageSize } = pagination;
@@ -142,6 +146,9 @@ function ManagerUser() {
         setSelectedUser(user);
         form.setFieldsValue({
             userId: user.id,
+            fullName: user.fullName,
+            phone: user.phone,
+            address: user.address,
             role: user.isAdmin,
         });
         setIsModalVisible(true);
@@ -165,14 +172,41 @@ function ManagerUser() {
         createForm.resetFields();
     };
 
+    const handleOpenPasswordModal = (user) => {
+        setPasswordResetUser(user);
+        passwordForm.resetFields();
+        setIsPasswordModalVisible(true);
+    };
+
+    const handlePasswordCancel = () => {
+        setIsPasswordModalVisible(false);
+        setPasswordResetUser(null);
+        passwordForm.resetFields();
+    };
+
     const handleFinish = async (values) => {
         try {
-            await requestUpdateRoleUser(values);
+            await requestUpdateManagedUser(values);
             await fetchUsers();
-            message.success('Cập nhật quyền người dùng thành công');
+            message.success('Cập nhật người dùng thành công');
             handleCancel();
         } catch (error) {
-            message.error(getErrorMessage(error, 'Không thể cập nhật quyền người dùng'));
+            message.error(getErrorMessage(error, 'Không thể cập nhật người dùng'));
+        }
+    };
+
+    const handleResetPassword = async (values) => {
+        if (!passwordResetUser) return;
+
+        try {
+            await requestUpdateManagedUser({
+                userId: passwordResetUser.id,
+                password: values.password,
+            });
+            message.success('Đặt lại mật khẩu thành công');
+            handlePasswordCancel();
+        } catch (error) {
+            message.error(getErrorMessage(error, 'Không thể đặt lại mật khẩu'));
         }
     };
 
@@ -331,11 +365,20 @@ function ManagerUser() {
                         ) : (
                             <>
                                 <AdminIconAction
-                                    title="Sửa vai trò"
+                                    title="Sửa thông tin"
                                     icon={<EditOutlined />}
                                     onClick={() => handleEditUser(record)}
                                     variant="edit"
                                 />
+                                {record.authProvider === 'email' && (
+                                    <AdminIconAction
+                                        title="Đặt lại mật khẩu"
+                                        icon={<KeyOutlined />}
+                                        onClick={() => handleOpenPasswordModal(record)}
+                                        variant="edit"
+                                        disabled={isSelf}
+                                    />
+                                )}
                                 <AdminIconAction
                                     title={record.status === 'locked' ? 'Mở khóa' : 'Tạm khóa'}
                                     icon={record.status === 'locked' ? <CheckCircleOutlined /> : <StopOutlined />}
@@ -450,13 +493,13 @@ function ManagerUser() {
                     </Form.Item>
                     <Form.Item
                         name="password"
-                        label="Mật khẩu"
+                        label="Mật khẩu ban đầu"
                         rules={[
                             { required: true, message: 'Vui lòng nhập mật khẩu!' },
                             { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
                         ]}
                     >
-                        <Input.Password placeholder="Nhập mật khẩu tạm" />
+                        <Input.Password placeholder="Nhập mật khẩu ban đầu" />
                     </Form.Item>
                     <Form.Item
                         name="role"
@@ -484,7 +527,7 @@ function ManagerUser() {
             </Modal>
 
             <Modal
-                title="Cập nhật vai trò người dùng"
+                title="Cập nhật người dùng"
                 open={isModalVisible}
                 onOk={() => form.submit()}
                 onCancel={handleCancel}
@@ -507,11 +550,85 @@ function ManagerUser() {
                         <input />
                     </Form.Item>
                     <Form.Item
+                        name="fullName"
+                        label="Họ và tên"
+                        rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                    >
+                        <Input placeholder="Nhập họ và tên" />
+                    </Form.Item>
+                    <Form.Item
+                        name="phone"
+                        label="Số điện thoại"
+                        rules={[
+                            {
+                                pattern: /^0\d{9}$/,
+                                message: 'Số điện thoại phải bắt đầu bằng số 0 và đủ 10 số!',
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Nhập số điện thoại nếu có" />
+                    </Form.Item>
+                    <Form.Item name="address" label="Địa chỉ">
+                        <Input.TextArea rows={3} placeholder="Nhập địa chỉ nếu có" />
+                    </Form.Item>
+                    <Form.Item
                         name="role"
                         label="Vai trò"
                         rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
                     >
                         <Select options={getAdminRoleFormOptions({ mode: 'boolean' })} />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
+                title="Đặt lại mật khẩu"
+                open={isPasswordModalVisible}
+                onOk={() => passwordForm.submit()}
+                onCancel={handlePasswordCancel}
+                okText="Lưu"
+                cancelText="Hủy"
+                className={cx('permission-modal')}
+            >
+                {passwordResetUser && (
+                    <div className={cx('user-info')}>
+                        <p>
+                            <strong>Họ và tên:</strong> {passwordResetUser.fullName}
+                        </p>
+                        <p>
+                            <strong>Email:</strong> {passwordResetUser.email}
+                        </p>
+                    </div>
+                )}
+                <Form form={passwordForm} layout="vertical" onFinish={handleResetPassword}>
+                    <Form.Item
+                        name="password"
+                        label="Mật khẩu mới"
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                            { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                        ]}
+                    >
+                        <Input.Password placeholder="Nhập mật khẩu mới" />
+                    </Form.Item>
+                    <Form.Item
+                        name="confirmPassword"
+                        label="Xác nhận mật khẩu"
+                        dependencies={['password']}
+                        rules={[
+                            { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('password') === value) {
+                                        return Promise.resolve();
+                                    }
+
+                                    return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password placeholder="Nhập lại mật khẩu mới" />
                     </Form.Item>
                 </Form>
             </Modal>

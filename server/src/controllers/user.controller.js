@@ -24,30 +24,13 @@ async function getUsers(req, res) {
 }
 
 async function updateUser(req, res) {
-    let metadata = null;
-    const messages = [];
-
-    if (req.body.role !== undefined) {
-        metadata = await userService.updateRole({
-            userId: req.params.userId,
-            role: req.body.role,
-        });
-        messages.push('quyền');
-    }
-
-    if (req.body.status !== undefined) {
-        const result = await userService.updateStatus(req.user.id, req.params.userId, req.body.status);
-        metadata = result.user;
-        messages.push(result.changed ? 'trạng thái' : 'trạng thái không thay đổi');
-    }
-
-    const statusUnchanged = messages.includes('trạng thái không thay đổi');
-    const changedFields = messages.filter((item) => item !== 'trạng thái không thay đổi');
+    const result = await userService.updateManagedUser(req.user.id, req.params.userId, req.body);
+    const { changedFields, statusUnchanged } = result;
     const message = statusUnchanged && changedFields.length === 0
         ? 'Trạng thái người dùng không thay đổi'
         : `Cập nhật ${changedFields.join(' và ')} người dùng thành công${statusUnchanged ? ', trạng thái không thay đổi' : ''}`;
 
-    return new OK({ message, metadata }).send(res);
+    return new OK({ message, metadata: result.user }).send(res);
 }
 
 async function deleteUser(req, res) {

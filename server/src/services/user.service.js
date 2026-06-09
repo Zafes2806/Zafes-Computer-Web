@@ -19,6 +19,12 @@ function parseAdminRole(role) {
     return false;
 }
 
+function serializeUser(user) {
+    const data = typeof user?.toJSON === 'function' ? user.toJSON() : { ...user };
+    delete data.password;
+    return data;
+}
+
 function buildUserListWhere(query = {}) {
     const includeDeleted = query.includeDeleted === true || query.includeDeleted === 'true';
     const status = query.status || USER_STATUS.ACTIVE;
@@ -66,7 +72,7 @@ async function getUsers(query = {}, pagination = null) {
 
     if (!pagination) {
         return {
-            items: await modelUser.findAll(options),
+            items: (await modelUser.findAll(options)).map(serializeUser),
             pagination: null,
         };
     }
@@ -78,7 +84,7 @@ async function getUsers(query = {}, pagination = null) {
     });
 
     return {
-        items: rows,
+        items: rows.map(serializeUser),
         pagination: buildPaginationMeta(count, pagination),
     };
 }
@@ -102,7 +108,7 @@ async function createUser(payload) {
         throw new BadRequestError('Email đã tồn tại');
     }
 
-    return modelUser.create({
+    const user = await modelUser.create({
         fullName,
         email,
         phone,
@@ -112,6 +118,7 @@ async function createUser(payload) {
         isAdmin: parseAdminRole(payload.role),
         status: USER_STATUS.ACTIVE,
     });
+    return serializeUser(user);
 }
 
 async function updateRole({ userId, role }) {
@@ -119,7 +126,7 @@ async function updateRole({ userId, role }) {
     if (!user) throw new BadUserRequestError('Người dùng không tồn tại');
     user.isAdmin = parseAdminRole(role);
     await user.save();
-    return user;
+    return serializeUser(user);
 }
 
 async function updateStatus(currentUserId, userId, status) {
@@ -130,11 +137,76 @@ async function updateStatus(currentUserId, userId, status) {
 
     const nextStatus = normalizeUserStatus(status);
     if (user.status === nextStatus) {
-        return { changed: false, user };
+        return { changed: false, user: serializeUser(user) };
     }
 
     await user.update({ status: nextStatus });
-    return { changed: true, user };
+    return { changed: true, user: serializeUser(user) };
+}
+
+async function updateManagedUser(currentUserId, userId, payload) {
+    const user = await modelUser.findByPk(userId, { paranoid: false });
+    if (!user) throw new BadRequestError('Người dùng không tồn tại');
+    if (user.deletedAt) throw new BadRequestError('Người dùng đang ở trong thùng rác. Hãy khôi phục trước khi cập nhật.');
+
+    const updates = {};
+    const changedFields = [];
+    let statusUnchanged = false;
+
+    if (payload.fullName !== undefined) {
+        updates.fullName = payload.fullName.trim();
+        changedFields.push('thông tin hồ sơ');
+    }
+
+    if (payload.phone !== undefined) {
+        updates.phone = payload.phone ? payload.phone.trim() : null;
+        changedFields.push('thông tin hồ sơ');
+    }
+
+    if (payload.address !== undefined) {
+        updates.address = payload.address ? payload.address.trim() : null;
+        changedFields.push('thông tin hồ sơ');
+    }
+
+    if (payload.role !== undefined) {
+        updates.isAdmin = parseAdminRole(payload.role);
+        changedFields.push('quyền');
+    }
+
+    if (payload.status !== undefined) {
+        if (currentUserId === userId) throw new BadRequestError('Không thể tự thay đổi trạng thái khóa của chính bạn');
+
+        const nextStatus = normalizeUserStatus(payload.status);
+        if (user.status === nextStatus) {
+            statusUnchanged = true;
+        } else {
+            updates.status = nextStatus;
+            changedFields.push('trạng thái');
+        }
+    }
+
+    if (payload.password) {
+        if (user.authProvider === 'google') {
+            throw new BadRequestError('Tài khoản đăng nhập bằng Google không dùng mật khẩu nội bộ');
+        }
+
+        updates.password = await bcrypt.hash(payload.password, 10);
+        changedFields.push('mật khẩu');
+    }
+
+    if (Object.keys(updates).length > 0) {
+        await user.update(updates);
+    }
+
+    if (payload.password) {
+        await modelRefreshToken.destroy({ where: { userId } });
+    }
+
+    return {
+        user: serializeUser(user),
+        changedFields: [...new Set(changedFields)],
+        statusUnchanged,
+    };
 }
 
 async function deleteUser(currentUserId, userId) {
@@ -142,7 +214,7 @@ async function deleteUser(currentUserId, userId) {
     const user = await modelUser.findByPk(userId, { paranoid: false });
     if (!user) throw new BadRequestError('Người dùng không tồn tại');
     if (user.deletedAt) {
-        return { deleted: false, user };
+        return { deleted: false, user: serializeUser(user) };
     }
 
     await connect.transaction(async (transaction) => {
@@ -152,7 +224,7 @@ async function deleteUser(currentUserId, userId) {
 
         await user.destroy({ transaction });
     });
-    return { deleted: true, user };
+    return { deleted: true, user: serializeUser(user) };
 }
 
 async function permanentlyDeleteUser(currentUserId, userId) {
@@ -183,16 +255,16 @@ async function permanentlyDeleteUser(currentUserId, userId) {
         await user.destroy({ force: true, transaction });
     });
 
-    return user;
+    return serializeUser(user);
 }
 
 async function restoreUser(userId) {
     const user = await modelUser.findByPk(userId, { paranoid: false });
     if (!user) throw new BadRequestError('Người dùng không tồn tại');
-    if (!user.deletedAt) return { restored: false, user };
+    if (!user.deletedAt) return { restored: false, user: serializeUser(user) };
     await user.restore();
     await user.update({ status: USER_STATUS.LOCKED });
-    return { restored: true, user };
+    return { restored: true, user: serializeUser(user) };
 }
 
 module.exports = {
@@ -203,6 +275,7 @@ module.exports = {
     parseAdminRole,
     restoreUser,
     updateInfo,
+    updateManagedUser,
     updateRole,
     updateStatus,
 };
